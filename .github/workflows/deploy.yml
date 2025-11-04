@@ -16,7 +16,7 @@ jobs:
       - name: Export game
         uses: abarichello/godot-ci@4.4.1-stable
         with:
-          args: --headless --export-release "Windows Desktop" build/game.exe
+          args: godot --headless --export-release "Windows Desktop" build/game.exe
 
       - name: Deploy to Itch.io
         uses: josephbmanley/butler-publish-itchio-action@master
