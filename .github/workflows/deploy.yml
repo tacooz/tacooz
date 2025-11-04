@@ -6,22 +6,22 @@ on:
       - main
 
 jobs:
-  export:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Godot
-        uses: abarichello/godot-ci@v3
+      - name: Setup Godot
+        uses: abarichello/godot-ci@v4.1.2
         with:
-          godot-version: 4.5.1  # 或 4.5，如果你希望自动匹配最新版本
+          godot-version: 4.5.1
 
-      - name: Export Windows
+      - name: Export game
         run: |
           mkdir -p build
-          godot --headless --verbose --export-release "Windows Desktop" build/tacooz.exe
+          godot --headless --verbose --export-release "Windows Desktop" build/game.exe
 
       - name: Deploy to Itch.io
         uses: josephbmanley/butler-publish-itchio-action@master
