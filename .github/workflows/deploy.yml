@@ -1,0 +1,33 @@
+name: Build and Upload to Itch.io
+
+on:
+  push:
+    branches:
+      - main  # 每次 push main 分支时触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Godot
+        uses: firebelley/setup-godot@v2
+        with:
+          version: '4.5.1'  # 改成你实际使用的 Godot 版本号，比如 4.2.2 或 4.3
+
+      - name: Export game
+        run: |
+          mkdir -p build
+          godot --headless --verbose --export-release "Windows Desktop" build/tacooz.exe
+
+      - name: Deploy to Itch.io
+        uses: josephbmanley/butler-publish-itchio-action@master
+        env:
+          BUTLER_CREDENTIALS: ${{ secrets.ITCH_API_KEY }}
+          CHANNEL: windows
+          ITCH_GAME: tacooz      # 游戏名（Itch.io 页面上的 short name）
+          ITCH_USER: tacooz      # 你的 Itch.io 用户名
+          PACKAGE: build/        # 要上传的文件夹（这里是导出的 build 文件夹）
