@@ -15,7 +15,7 @@ jobs:
 
       # 使用 firebelley/godot-export 来构建项目
       - name: Set up Godot 4.x
-        uses: firebelley/godot-export@v5
+        uses: firebelley/godot-export@v4   # 使用 Godot 4.x 版本
         with:
           version: '4.5'  # 你的 Godot 版本
           use-mono: false # 如果没有用 Mono，可以设置为 false
