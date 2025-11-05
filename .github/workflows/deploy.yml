@@ -13,10 +13,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Export game
-        uses: abarichello/godot-ci@4.4.1-stable
+      - name: Set up Godot 4.x
+        uses: abarichello/godot-ci@v4.4.1-stable  # 确保使用 Godot 4.x 的版本
         with:
-          args: godot --headless --export-release "Windows Desktop" build/game.exe
+          args: godot --headless --verbose --export-release "Windows Desktop" build/game.exe
 
       - name: Deploy to Itch.io
         uses: josephbmanley/butler-publish-itchio-action@master
