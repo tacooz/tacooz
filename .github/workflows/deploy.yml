@@ -21,9 +21,15 @@ jobs:
 
       - name: Install export templates
         run: |
-          wget https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_export_templates.tpz
+          wget https://downloads.tuxfamily.org/godotengine/4.5.1/stable/Godot_v4.5.1-stable_export_templates.tpz
           mkdir -p ~/.local/share/godot/export_templates/4.5.1.stable
           unzip -q Godot_v4.5.1-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/4.5.1.stable
+          # 修正路径层级
+          if [ -d ~/.local/share/godot/export_templates/4.5.1.stable/templates ]; then
+            mv ~/.local/share/godot/export_templates/4.5.1.stable/templates/* ~/.local/share/godot/export_templates/4.5.1.stable/
+            rmdir ~/.local/share/godot/export_templates/4.5.1.stable/templates
+          fi
+
 
       - name: Verify Godot installation
         run: godot --version
