@@ -14,7 +14,7 @@ jobs:
 
       - name: Download Godot 4.5.1
         run: |
-          wget https://downloads.tuxfamily.org/godotengine/4.5.1/stable/linux/x11/godot-4.5.1-stable-x11.64.zip
+          wget https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_linux.x86_64.zip
           unzip godot-4.5.1-stable-x11.64.zip
           chmod +x godot-4.5.1-stable-x11.64
           sudo mv godot-4.5.1-stable-x11.64 /usr/local/bin/godot
