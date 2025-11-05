@@ -13,14 +13,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 使用 firebelley/godot-export 来构建项目
-      - name: Set up Godot 4.x
-        uses: firebelley/godot-export@v4   # 使用 Godot 4.x 版本
-        with:
-          version: '4.5'  # 你的 Godot 版本
-          use-mono: false # 如果没有用 Mono，可以设置为 false
-          export_presets: "Windows Desktop"  # 你设置的导出预设名称
+      # 安装 Godot 4.x
+      - name: Install Godot 4.x
+        run: |
+          wget https://downloads.tuxfamily.org/godotengine/4.5.1/stable/linux/x11/godot-4.5.1-stable-x11.64.zip
+          unzip godot-4.5.1-stable-x11.64.zip
+          chmod +x godot
+          sudo mv godot /usr/local/bin/godot
 
+      # 使用 Godot CLI 导出 Windows 版本
+      - name: Export game
+        run: |
+          godot --headless --verbose --export "Windows Desktop" build/tacooz.exe
+
+      # 上传到 Itch.io
       - name: Deploy to Itch.io
         uses: josephbmanley/butler-publish-itchio-action@master
         env:
