@@ -1,9 +1,8 @@
-name: Build and Upload to Itch.io
+name: Build and Export Godot 4.5.1 Project
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build:
@@ -13,25 +12,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 安装 Godot 4.x
-      - name: Install Godot 4.x
+      - name: Download Godot 4.5.1
         run: |
           wget https://downloads.tuxfamily.org/godotengine/4.5.1/stable/linux/x11/godot-4.5.1-stable-x11.64.zip
           unzip godot-4.5.1-stable-x11.64.zip
-          chmod +x godot
-          sudo mv godot /usr/local/bin/godot
+          chmod +x godot-4.5.1-stable-x11.64
+          sudo mv godot-4.5.1-stable-x11.64 /usr/local/bin/godot
 
-      # 使用 Godot CLI 导出 Windows 版本
-      - name: Export game
+      - name: Install export templates
         run: |
-          godot --headless --verbose --export "Windows Desktop" build/tacooz.exe
+          wget https://downloads.tuxfamily.org/godotengine/4.5.1/stable/Godot_v4.5.1-stable_export_templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates/4.5.1.stable
+          unzip -q Godot_v4.5.1-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/4.5.1.stable
 
-      # 上传到 Itch.io
-      - name: Deploy to Itch.io
-        uses: josephbmanley/butler-publish-itchio-action@master
-        env:
-          BUTLER_CREDENTIALS: ${{ secrets.ITCH_API_KEY }}
-          CHANNEL: windows
-          ITCH_GAME: tacooz
-          ITCH_USER: tacooz
-          PACKAGE: build/
+      - name: Verify Godot installation
+        run: godot --version
+
+      - name: Export Windows build
+        run: |
+          godot --headless --verbose --export-release "Windows Desktop" tacooz.exe
+          ls -lh tacooz.exe
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tacooz-windows
+          path: tacooz.exe
