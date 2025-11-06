@@ -37,15 +37,18 @@ jobs:
         run: |
           echo "🔧 Exporting Windows build..."
           mkdir -p build/windows
-          godot --headless --verbose --export-release "Windows Desktop" build/windows/tacooz.exe || true
+          godot --headless --path . --verbose --export-release "Windows Desktop" build/windows/tacooz.exe
           echo "✅ Windows export complete. Contents:"
           ls -lh build/windows || echo "⚠️ Windows build folder missing!"
 
       # --- Step 6: Export Web build ---
       - name: Export Web build
         run: |
+          set -e
+          echo "🔧 Exporting Web build..."
+          rm -rf build/web
           mkdir -p build/web
-          godot --headless --verbose --export-release "Web" build/web/index.html
+          godot --headless --path . --verbose --export-release "Web" build/web/index.html
           echo "✅ Web export finished. Listing files:"
           ls -R build/web
 
@@ -55,9 +58,6 @@ jobs:
           if [ ! -f "build/web/index.html" ]; then
             echo "❌ ERROR: Web export failed — index.html not found!"
             exit 1
-          fi
-          if [ ! -f "build/web/index.wasm" ]; then
-            echo "⚠️ Warning: index.wasm missing (might cause itch.io load errors)"
           fi
           echo "✅ Web build verified."
 
@@ -82,11 +82,10 @@ jobs:
           butler -V
 
       # --- Step 10: Upload to itch.io ---
-      - name: Deploy Windows build to itch.io
+      - name: Deploy Web build to itch.io
         env:
           BUTLER_API_KEY: ${{ secrets.ITCH_API_KEY }}
         run: |
-          echo "🚀 Uploading Windows build..."
-          butler push build/windows taccoz/taccoz:windows --userversion "$(git rev-parse --short HEAD)"
-          echo "✅ Windows build uploaded."
-
+          echo "🚀 Uploading to itch.io..."
+          butler push dist/taccoz-html5.zip taccoz/taccoz:html5 --userversion $GITHUB_RUN_NUMBER
+          echo "✅ Upload complete! Check your itch.io page for updates."
