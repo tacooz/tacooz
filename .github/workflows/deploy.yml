@@ -46,7 +46,7 @@ jobs:
         run: |
           echo "🌐 Exporting Web build..."
           mkdir -p build/web
-          godot --headless --verbose --export-release "Web" build/web/index.html || true
+          godot --headless --verbose --export-release "Web(可执行)" build/web/index.html
           echo "✅ Web export complete. Contents:"
           ls -lh build/web || echo "⚠️ Web build folder missing!"
 
