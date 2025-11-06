@@ -1,4 +1,4 @@
-name: Build and Export Godot 4.5.1 Project
+name: Build and Deploy Godot 4.5.1 (Windows + Web)
 
 on:
   push:
@@ -21,26 +21,42 @@ jobs:
 
       - name: Install export templates
         run: |
-          wget https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_export_templates.tpz -O templates.tpz
+          wget https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_export_templates.tpz
           mkdir -p ~/.local/share/godot/export_templates/4.5.1.stable
-          unzip -q templates.tpz -d ~/.local/share/godot/export_templates/4.5.1.stable
-          if [ -d ~/.local/share/godot/export_templates/4.5.1.stable/templates ]; then
-            mv ~/.local/share/godot/export_templates/4.5.1.stable/templates/* ~/.local/share/godot/export_templates/4.5.1.stable/
-            rmdir ~/.local/share/godot/export_templates/4.5.1.stable/templates
-          fi
-
-
+          unzip -q Godot_v4.5.1-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/4.5.1.stable
 
       - name: Verify Godot installation
         run: godot --version
 
       - name: Export Windows build
         run: |
-          godot --headless --verbose --export-release "Windows Desktop" tacooz.exe
-          ls -lh tacooz.exe
+          mkdir -p build/windows
+          godot --headless --verbose --export-release "Windows Desktop" build/windows/tacooz.exe
 
-      - name: Upload build artifact
+      - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: tacooz-windows
-          path: tacooz.exe
+          path: build/windows/
+
+      - name: Export Web build
+        run: |
+          mkdir -p build/web
+          godot --headless --verbose --export-release "Web" build/web/index.html
+          ls -lh build/web
+
+      - name: Debug: Check exported files
+        run: |
+          echo "Listing files in build/web:"
+          ls -R build/web
+
+      - name: Deploy Web build to itch.io
+        if: success()
+        uses: josephbmanley/butler-publish-itchio-action@v1.0.3
+        with:
+          username: tacooz
+          game: tacooz
+          channel: html5
+          api_key: ${{ secrets.ITCH_API_KEY }}
+          directory: build/web
+
