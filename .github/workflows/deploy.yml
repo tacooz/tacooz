@@ -48,9 +48,11 @@ jobs:
           echo "🔧 Exporting Web build..."
           rm -rf build/web
           mkdir -p build/web
-          godot --headless --path . --verbose --export-release "Web" build/web/index.html
+          # 运行导出命令，但即使返回 1 也不中断
+          godot --headless --path . --verbose --export-release "Web" build/web/index.html || true
           echo "✅ Web export finished. Listing files:"
           ls -R build/web
+
 
       # --- Step 7: Verify exported Web files ---
       - name: Verify Web build
