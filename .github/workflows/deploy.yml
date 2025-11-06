@@ -50,7 +50,14 @@ jobs:
           echo "Listing files in build/web:"
           ls -R build/web
 
-            # 安装 butler 工具
+      - name: Package Web build
+        run: |
+          echo "Zipping flat structure for itch.io..."
+          cd build/web
+          zip -r ../taccoz-html5.zip ./*
+          cd ../..
+          ls -lh build
+
       - name: Install butler
         run: |
           echo "Installing itch.io butler..."
@@ -65,6 +72,7 @@ jobs:
           BUTLER_API_KEY: ${{ secrets.ITCH_API_KEY }}
         run: |
           echo "Uploading to itch.io..."
-          butler push build/web taccoz/taccoz:html5 --userversion $GITHUB_RUN_NUMBER
+          butler push build/taccoz-html5.zip taccoz/taccoz:html5 --userversion $GITHUB_RUN_NUMBER
+
 
 
