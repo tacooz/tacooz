@@ -54,7 +54,7 @@ jobs:
         uses: josephbmanley/butler-publish-itchio-action@v1.0.3
         with:
           entryPoint: butler
-          args: push build/windows tacooz/tacooz:windows --userversion ${{ github.run_number }}
+          args: push build/windows taccoz/taccoz:windows --userversion ${{ github.run_number }}
         env:
           BUTLER_API_KEY: ${{ secrets.ITCH_API_KEY }}
 
