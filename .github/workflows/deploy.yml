@@ -45,7 +45,7 @@ jobs:
           godot --headless --verbose --export-release "Web" build/web/index.html
           ls -lh build/web
 
-      - name: Debug: Check exported files
+      - name: "Debug: Check exported files"
         run: |
           echo "Listing files in build/web:"
           ls -R build/web
@@ -59,4 +59,3 @@ jobs:
           channel: html5
           api_key: ${{ secrets.ITCH_API_KEY }}
           directory: build/web
-
