@@ -50,12 +50,11 @@ jobs:
           echo "Listing files in build/web:"
           ls -R build/web
 
-      - name: Deploy Web build to itch.io
-        if: success()
+      - name: Upload to Itch.io
         uses: josephbmanley/butler-publish-itchio-action@v1.0.3
         with:
-          username: tacooz
-          game: tacooz
-          channel: html5
-          api_key: ${{ secrets.ITCH_API_KEY }}
-          directory: build/web
+          entryPoint: butler
+          args: push build/windows your_username/your_game:windows --userversion ${{ github.run_number }}
+        env:
+          BUTLER_CREDENTIALS: ${{ secrets.ITCH_API_KEY }}
+
