@@ -44,11 +44,10 @@ jobs:
       # --- Step 6: Export Web build ---
       - name: Export Web build
         run: |
-          echo "🌐 Exporting Web build..."
           mkdir -p build/web
-          godot --headless --verbose --export-release "Web(Runnable)" build/web/index.html || true
-          echo "✅ Web export complete. Contents:"
-          ls -lh build/web || echo "⚠️ Web build folder missing!"
+          godot --headless --verbose --export-release "Web" build/web/index.html
+          echo "✅ Web export finished. Listing files:"
+          ls -R build/web
 
       # --- Step 7: Verify exported Web files ---
       - name: Verify Web build
@@ -83,10 +82,11 @@ jobs:
           butler -V
 
       # --- Step 10: Upload to itch.io ---
-      - name: Deploy Web build to itch.io
+      - name: Deploy Windows build to itch.io
         env:
           BUTLER_API_KEY: ${{ secrets.ITCH_API_KEY }}
         run: |
-          echo "🚀 Uploading to itch.io..."
-          butler push dist/taccoz-html5.zip taccoz/taccoz:html5 --userversion $GITHUB_RUN_NUMBER
-          echo "✅ Upload complete! Check your itch.io page for updates."
+          echo "🚀 Uploading Windows build..."
+          butler push build/windows taccoz/taccoz:windows --userversion "$(git rev-parse --short HEAD)"
+          echo "✅ Windows build uploaded."
+
