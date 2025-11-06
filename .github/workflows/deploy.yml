@@ -9,9 +9,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # --- Step 1: Checkout project ---
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # --- Step 2: Download Godot binary ---
       - name: Download Godot 4.5.1
         run: |
           wget https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_linux.x86_64.zip
@@ -19,60 +21,72 @@ jobs:
           chmod +x Godot_v4.5.1-stable_linux.x86_64
           sudo mv Godot_v4.5.1-stable_linux.x86_64 /usr/local/bin/godot
 
+      # --- Step 3: Install export templates ---
       - name: Install export templates
         run: |
           wget https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_export_templates.tpz
           mkdir -p ~/.local/share/godot/export_templates/4.5.1.stable
           unzip -q Godot_v4.5.1-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/4.5.1.stable
 
+      # --- Step 4: Verify installation ---
       - name: Verify Godot installation
         run: godot --version
 
+      # --- Step 5: Export Windows build ---
       - name: Export Windows build
         run: |
+          echo "🔧 Exporting Windows build..."
           mkdir -p build/windows
           godot --headless --verbose --export-release "Windows Desktop" build/windows/tacooz.exe || true
+          echo "✅ Windows export complete. Contents:"
+          ls -lh build/windows || echo "⚠️ Windows build folder missing!"
 
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: tacooz-windows
-          path: build/windows/
-
+      # --- Step 6: Export Web build ---
       - name: Export Web build
         run: |
+          echo "🌐 Exporting Web build..."
           mkdir -p build/web
           godot --headless --verbose --export-release "Web" build/web/index.html || true
-          ls -lh build/web
+          echo "✅ Web export complete. Contents:"
+          ls -lh build/web || echo "⚠️ Web build folder missing!"
 
-      - name: "Debug: Check exported files"
+      # --- Step 7: Verify exported Web files ---
+      - name: Verify Web build
         run: |
-          echo "Listing files in build/web:"
-          ls -R build/web
+          if [ ! -f "build/web/index.html" ]; then
+            echo "❌ ERROR: Web export failed — index.html not found!"
+            exit 1
+          fi
+          if [ ! -f "build/web/index.wasm" ]; then
+            echo "⚠️ Warning: index.wasm missing (might cause itch.io load errors)"
+          fi
+          echo "✅ Web build verified."
 
+      # --- Step 8: Package Web build (flat zip for itch.io) ---
       - name: Package Web build
         run: |
-          echo "Zipping flat structure for itch.io..."
+          echo "📦 Creating flat zip for itch.io..."
+          mkdir -p dist
           cd build/web
-          zip -r ../taccoz-html5.zip ./*
+          zip -r ../../dist/taccoz-html5.zip ./*
           cd ../..
-          ls -lh build
+          ls -lh dist
+          echo "✅ Packaging complete."
 
+      # --- Step 9: Install butler CLI ---
       - name: Install butler
         run: |
-          echo "Installing itch.io butler..."
+          echo "⬇️ Installing itch.io butler..."
           curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
           unzip butler.zip -d butler
           sudo mv butler/butler /usr/local/bin/butler
           butler -V
 
+      # --- Step 10: Upload to itch.io ---
       - name: Deploy Web build to itch.io
-        if: success()
         env:
           BUTLER_API_KEY: ${{ secrets.ITCH_API_KEY }}
         run: |
-          echo "Uploading to itch.io..."
-          butler push build/taccoz-html5.zip taccoz/taccoz:html5 --userversion $GITHUB_RUN_NUMBER
-
-
-
+          echo "🚀 Uploading to itch.io..."
+          butler push dist/taccoz-html5.zip taccoz/taccoz:html5 --userversion $GITHUB_RUN_NUMBER
+          echo "✅ Upload complete! Check your itch.io page for updates."
