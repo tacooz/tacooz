@@ -41,30 +41,25 @@ jobs:
           echo "✅ Windows export complete. Contents:"
           ls -lh build/windows || echo "⚠️ Windows build folder missing!"
 
-      # --- Step 6: Export Web build ---
+      # --- Step 6: Export Web build (safe handling for exit code 1) ---
       - name: Export Web build
-        continue-on-error: true
         run: |
           echo "🔧 Exporting Web build..."
           rm -rf build/web
           mkdir -p build/web
-          godot --headless --path . --verbose --export-release "Web" build/web/index.html
-          echo "✅ Web export finished. Listing files:"
-          ls -R build/web
-
-
-
-
-      # --- Step 7: Verify exported Web files ---
-      - name: Verify Web build
-        run: |
+          
+          # 执行导出并捕获退出码
+          godot --headless --path . --verbose --export-release "Web" build/web/index.html || EXIT_CODE=$?
+          
+          echo "✅ Web export finished. Checking result..."
           if [ ! -f "build/web/index.html" ]; then
             echo "❌ ERROR: Web export failed — index.html not found!"
             exit 1
           fi
-          echo "✅ Web build verified."
 
-      # --- Step 8: Package Web build (flat zip for itch.io) ---
+          echo "✅ Web build verified. Godot exit code: ${EXIT_CODE:-0}"
+
+      # --- Step 7: Package Web build (flat zip for itch.io) ---
       - name: Package Web build
         run: |
           echo "📦 Creating flat zip for itch.io..."
@@ -75,7 +70,7 @@ jobs:
           ls -lh dist
           echo "✅ Packaging complete."
 
-      # --- Step 9: Install butler CLI ---
+      # --- Step 8: Install butler CLI ---
       - name: Install butler
         run: |
           echo "⬇️ Installing itch.io butler..."
@@ -84,7 +79,7 @@ jobs:
           sudo mv butler/butler /usr/local/bin/butler
           butler -V
 
-      # --- Step 10: Upload to itch.io ---
+      # --- Step 9: Upload to itch.io ---
       - name: Deploy Web build to itch.io
         env:
           BUTLER_API_KEY: ${{ secrets.ITCH_API_KEY }}
