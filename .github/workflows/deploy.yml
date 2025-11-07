@@ -24,9 +24,18 @@ jobs:
       # --- Step 3: Install export templates ---
       - name: Install export templates
         run: |
-          wget https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_export_templates.tpz
+          echo "⬇️ Installing Godot export templates..."
+          wget https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_export_templates.tpz -O templates.tpz
           mkdir -p ~/.local/share/godot/export_templates/4.5.1.stable
-          unzip -q Godot_v4.5.1-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/4.5.1.stable
+          unzip -q templates.tpz -d ~/.local/share/godot/export_templates/4.5.1.stable
+          # 有时候解压后会出现嵌套目录，需要把内容提升一级
+          if [ -d ~/.local/share/godot/export_templates/4.5.1.stable/templates ]; then
+            mv ~/.local/share/godot/export_templates/4.5.1.stable/templates/* ~/.local/share/godot/export_templates/4.5.1.stable/
+            rm -rf ~/.local/share/godot/export_templates/4.5.1.stable/templates
+          fi
+          echo "✅ Export templates installed. Listing:"
+          ls -lh ~/.local/share/godot/export_templates/4.5.1.stable
+
 
       # --- Step 4: Verify installation ---
       - name: Verify Godot installation
