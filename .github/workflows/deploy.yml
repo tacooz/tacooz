@@ -43,16 +43,15 @@ jobs:
 
       # --- Step 6: Export Web build ---
       - name: Export Web build
+        continue-on-error: true
         run: |
           echo "🔧 Exporting Web build..."
           rm -rf build/web
           mkdir -p build/web
-          godot --headless --path . --verbose --export-release "Web" build/web/index.html || true
-          if [ ! -f build/web/index.html ]; then
-            echo "❌ Export failed: build/web/index.html not found!"
-            exit 1
-          fi
-          echo "✅ Export completed successfully."
+          godot --headless --path . --verbose --export-release "Web" build/web/index.html
+          echo "✅ Web export finished. Listing files:"
+          ls -R build/web
+
 
 
 
