@@ -44,20 +44,33 @@ jobs:
       # --- Step 6: Export Web build (safe handling for exit code 1) ---
       - name: Export Web build
         run: |
-          echo "🔧 Exporting Web build..."
+          echo "🔧 Exporting Web build (robust handling)..."
+          # 允许命令返回非0也继续执行
+          set +e
+
           rm -rf build/web
           mkdir -p build/web
-          
-          # 执行导出并捕获退出码
-          godot --headless --path . --verbose --export-release "Web" build/web/index.html || EXIT_CODE=$?
-          
-          echo "✅ Web export finished. Checking result..."
-          if [ ! -f "build/web/index.html" ]; then
-            echo "❌ ERROR: Web export failed — index.html not found!"
+
+          # 运行 Godot 导出并捕获退出码
+          godot --headless --path . --verbose --export-release "Web" build/web/index.html
+          GODOT_EXIT_CODE=$?
+
+          # 列出导出产物（方便日志排查）
+          echo "--- Contents of build/web after godot export ---"
+          ls -lah build/web || true
+          echo "-----------------------------------------------"
+
+          # 手动判断导出是否成功（index.html 必须存在）
+          if [ -f "build/web/index.html" ]; then
+            echo "✅ build/web/index.html found — treating export as SUCCESS (Godot exit: ${GODOT_EXIT_CODE})."
+            # 明确以 0 结束此 step（无论 Godot 的退出码是什么）
+            exit 0
+          else
+            echo "❌ build/web/index.html NOT found — export FAILED. Godot exit: ${GODOT_EXIT_CODE}"
+            # 返回非 0，让工作流中断（因为确实没产物）
             exit 1
           fi
 
-          echo "✅ Web build verified. Godot exit code: ${EXIT_CODE:-0}"
 
       # --- Step 7: Package Web build (flat zip for itch.io) ---
       - name: Package Web build
