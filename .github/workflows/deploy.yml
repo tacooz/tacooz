@@ -66,15 +66,17 @@ jobs:
           fi
 
       # Step 7: Package Web build for itch.io
-      - name: Package Web build
+      - name: Package Web build (flat structure)
         run: |
-          echo "📦 Creating flat zip for itch.io..."
+          echo "📦 Creating flat zip for itch.io (no subfolder)..."
           mkdir -p dist
           cd build/web
-          zip -r ../../dist/taccoz-html5.zip ./*
+          # 使用 -j 选项：打平所有路径，让文件直接在 zip 根目录
+          zip -j ../../dist/taccoz-html5.zip ./*
           cd ../..
-          echo "✅ Packaging complete. Listing contents:"
-          unzip -l dist/taccoz-html5.zip | head -n 20
+          ls -lh dist
+          echo "✅ Packaging complete (flat structure ready for itch.io)."
+
 
       # Step 8: Install butler CLI
       - name: Install butler
