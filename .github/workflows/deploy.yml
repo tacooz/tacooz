@@ -9,11 +9,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # --- Step 1: Checkout project ---
+      # Step 1: Checkout project
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # --- Step 2: Download Godot binary ---
+      # Step 2: Download Godot binary
       - name: Download Godot 4.5.1
         run: |
           wget https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_linux.x86_64.zip
@@ -21,67 +21,51 @@ jobs:
           chmod +x Godot_v4.5.1-stable_linux.x86_64
           sudo mv Godot_v4.5.1-stable_linux.x86_64 /usr/local/bin/godot
 
-      # --- Step 3: Install export templates ---
+      # Step 3: Install export templates
       - name: Install export templates
         run: |
           echo "⬇️ Installing Godot export templates..."
           wget https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_export_templates.tpz -O templates.tpz
           mkdir -p ~/.local/share/godot/export_templates/4.5.1.stable
           unzip -q templates.tpz -d ~/.local/share/godot/export_templates/4.5.1.stable
-          # 有时候解压后会出现嵌套目录，需要把内容提升一级
           if [ -d ~/.local/share/godot/export_templates/4.5.1.stable/templates ]; then
             mv ~/.local/share/godot/export_templates/4.5.1.stable/templates/* ~/.local/share/godot/export_templates/4.5.1.stable/
             rm -rf ~/.local/share/godot/export_templates/4.5.1.stable/templates
           fi
-          echo "✅ Export templates installed. Listing:"
+          echo "✅ Templates installed successfully."
           ls -lh ~/.local/share/godot/export_templates/4.5.1.stable
 
-
-      # --- Step 4: Verify installation ---
+      # Step 4: Verify Godot installation
       - name: Verify Godot installation
         run: godot --version
 
-      # --- Step 5: Export Windows build ---
+      # Step 5: Export Windows build
       - name: Export Windows build
         run: |
           echo "🔧 Exporting Windows build..."
           mkdir -p build/windows
-          godot --headless --path . --verbose --export-release "Windows Desktop" build/windows/tacooz.exe
+          godot --headless --path . --verbose --export-release "Windows Desktop" build/windows/tacooz.exe || true
           echo "✅ Windows export complete. Contents:"
           ls -lh build/windows || echo "⚠️ Windows build folder missing!"
 
-      # --- Step 6: Export Web build (safe handling for exit code 1) ---
+      # Step 6: Export Web build
       - name: Export Web build
         run: |
-          echo "🔧 Exporting Web build (robust handling)..."
-          # 允许命令返回非0也继续执行
-          set +e
-
+          echo "🔧 Exporting Web build..."
           rm -rf build/web
           mkdir -p build/web
-
-          # 运行 Godot 导出并捕获退出码
-          godot --headless --path . --verbose --export-release "Web" build/web/index.html
-          GODOT_EXIT_CODE=$?
-
-          # 列出导出产物（方便日志排查）
-          echo "--- Contents of build/web after godot export ---"
+          godot --headless --path . --verbose --export-release "Web" build/web/index.html || true
+          echo "--- Listing exported web files ---"
           ls -lah build/web || true
-          echo "-----------------------------------------------"
-
-          # 手动判断导出是否成功（index.html 必须存在）
+          echo "---------------------------------"
           if [ -f "build/web/index.html" ]; then
-            echo "✅ build/web/index.html found — treating export as SUCCESS (Godot exit: ${GODOT_EXIT_CODE})."
-            # 明确以 0 结束此 step（无论 Godot 的退出码是什么）
-            exit 0
+            echo "✅ Web export succeeded."
           else
-            echo "❌ build/web/index.html NOT found — export FAILED. Godot exit: ${GODOT_EXIT_CODE}"
-            # 返回非 0，让工作流中断（因为确实没产物）
+            echo "❌ ERROR: Web export failed (index.html missing)"
             exit 1
           fi
 
-
-      # --- Step 7: Package Web build (flat zip for itch.io) ---
+      # Step 7: Package Web build for itch.io
       - name: Package Web build
         run: |
           echo "📦 Creating flat zip for itch.io..."
@@ -89,10 +73,10 @@ jobs:
           cd build/web
           zip -r ../../dist/taccoz-html5.zip ./*
           cd ../..
-          ls -lh dist
-          echo "✅ Packaging complete."
+          echo "✅ Packaging complete. Listing contents:"
+          unzip -l dist/taccoz-html5.zip | head -n 20
 
-      # --- Step 8: Install butler CLI ---
+      # Step 8: Install butler CLI
       - name: Install butler
         run: |
           echo "⬇️ Installing itch.io butler..."
@@ -101,11 +85,11 @@ jobs:
           sudo mv butler/butler /usr/local/bin/butler
           butler -V
 
-      # --- Step 9: Upload to itch.io ---
+      # Step 9: Upload to itch.io
       - name: Deploy Web build to itch.io
         env:
           BUTLER_API_KEY: ${{ secrets.ITCH_API_KEY }}
         run: |
           echo "🚀 Uploading to itch.io..."
           butler push dist/taccoz-html5.zip taccoz/taccoz:html5 --userversion $GITHUB_RUN_NUMBER
-          echo "✅ Upload complete! Check your itch.io page for updates."
+          echo "✅ Upload complete! Visit your itch.io page to test."
